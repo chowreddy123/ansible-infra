@@ -46,7 +46,29 @@ resource "aws_route_table_association" "public_route" {
   subnet_id = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.my_route.id
 }
-
+#-----------------------------------aws security group-----------------------
+resource "aws_security_group" "my-sg" {
+  name = "my-sg"
+  description = "http and ssh traffic "
+  ingress {
+    from_port = 80
+    protocol  = "tcp"
+    to_port   = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port = 22
+    protocol  = "tcp"
+    to_port   = 22
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 0
+    protocol  = "-1"
+    to_port   = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 #---------------------------aws key-pair----------------------------------------
 
 resource "tls_private_key" "key_pair" {
@@ -69,7 +91,8 @@ resource "aws_instance" "aws_instance" {
   instance_type = "t2.micro"
   key_name = "my-key-pair"
 #  vpc_security_group_ids = ["sg-0b075493ec4ade986"]
-#  subnet_id = aws_subnet.public_subnet.id
+ # subnet_id = aws_subnet.public_subnet.id
+  vpc_security_group_ids = [aws_security_group.my-sg.id]
 
   tags = {
     name ="my-instance"
