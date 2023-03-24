@@ -46,3 +46,32 @@ resource "aws_route_table_association" "public_route" {
   subnet_id = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.my_route.id
 }
+
+#---------------------------aws key-pair----------------------------------------
+
+resource "tls_private_key" "key_pair" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+# Create the Key Pair
+resource "aws_key_pair" "my_key_pair" {
+  key_name   = "my-key-pair"
+  public_key = tls_private_key.key_pair.public_key_openssh
+}
+# Save file
+resource "local_file" "ssh_key" {
+  filename = "${aws_key_pair.my_key_pair.key_name}.pem"
+  content  = tls_private_key.key_pair.private_key_pem
+}
+#--------------------------------------aws instance-------------------------------
+resource "aws_instance" "aws_instance" {
+  ami = "ami-00c39f71452c08778"
+  instance_type = "t2.micro"
+  key_name = "my-key-pair"
+#  vpc_security_group_ids = ["sg-0b075493ec4ade986"]
+#  subnet_id = aws_subnet.public_subnet.id
+
+  tags = {
+    name ="my-instance"
+  }
+}
